@@ -7,16 +7,25 @@ import {
 } from '../services/contactsServices.js';
 import HttpError from '../helpers/HttpError.js';
 
-export const getAllContacts = async (_, res) => {
-  const contacts = await listContacts();
-
-  return res.status(200).json(contacts);
+export const getAllContacts = async (_, res, next) => {
+  try {
+    const contacts = await listContacts();
+    return res.status(200).json(contacts);
+  } catch (e) {
+    next(e);
+  }
 };
 
 export const getOneContact = async (req, res, next) => {
   const { id } = req.params;
 
-  const contact = await getContactById(id);
+  let contact = null;
+
+  try {
+    contact = await getContactById(id);
+  } catch (e) {
+    return next(e);
+  }
 
   if (!contact) {
     return next(HttpError(404));
@@ -28,7 +37,13 @@ export const getOneContact = async (req, res, next) => {
 export const deleteContact = async (req, res, next) => {
   const { id } = req.params;
 
-  const contact = await removeContact(id);
+  let contact = null;
+
+  try {
+    contact = await removeContact(id);
+  } catch (e) {
+    return next(e);
+  }
 
   if (!contact) {
     return next(HttpError(404));
@@ -37,16 +52,47 @@ export const deleteContact = async (req, res, next) => {
   return res.status(200).json(contact);
 };
 
-export const createContact = async (req, res) => {
-  const contact = await addContact(req.body);
+export const createContact = async (req, res, next) => {
+  try {
+    const contact = await addContact(req.body);
 
-  return res.status(201).json(contact);
+    return res.status(201).json(contact);
+  } catch (e) {
+    next(e);
+  }
 };
 
 export const updateContact = async (req, res, next) => {
   const id = req.params.id;
 
-  const contact = await modifyContact(id, req.body);
+  let contact = null;
+
+  try {
+    contact = await modifyContact(id, req.body);
+  } catch (e) {
+    return next(e);
+  }
+
+  if (!contact) {
+    return next(HttpError(404));
+  }
+
+  return res.status(200).json(contact);
+};
+
+export const updateStatusContact = async (req, res, next) => {
+  const id = req.params.id;
+
+  let contact = null;
+
+  const { favorite } = req.body;
+
+  try {
+    contact = await modifyContact(id, { favorite });
+  } catch (e) {
+    return next(e);
+  }
+
   if (!contact) {
     return next(HttpError(404));
   }

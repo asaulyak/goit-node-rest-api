@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import contactsRouter from './routes/contactsRouter.js';
 import { config } from 'dotenv';
-import mongoose from 'mongoose';
+import { sequelize } from './db/index.js';
 
 config();
 
@@ -33,14 +33,18 @@ app.use((err, _, res, __) => {
 });
 
 const PORT = process.env.PORT || 3000;
-const uriDb = process.env.DB_HOST;
 
-const connection = mongoose.connect(uriDb, {});
-
-connection
+sequelize
+  .authenticate()
   .then(() => {
+    console.log('Database connection successful');
+
     app.listen(PORT, function () {
       console.log(`Server running. Use our API on port: ${PORT}`);
     });
   })
-  .catch(err => console.log(`Server not running. Error message: ${err.message}`));
+  .catch(err => {
+    console.log(`Server not running. Error message: ${err.message}`);
+
+    process.exit(1);
+  });

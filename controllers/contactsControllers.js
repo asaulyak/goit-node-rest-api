@@ -67,8 +67,10 @@ export const updateContact = async (req, res, next) => {
 
   let contact = null;
 
+  const { name, email, favorites } = req.body;
+
   try {
-    contact = await modifyContact(id, req.body);
+    contact = await modifyContact(id, { name, email, favorites });
   } catch (e) {
     return next(e);
   }

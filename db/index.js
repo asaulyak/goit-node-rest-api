@@ -14,6 +14,5 @@ export const sequelize = new Sequelize({
   host: DB_HOST,
   username: DB_USER,
   password: DB_PASSWORD,
-  database: DB_NAME,
-  synchronize: true
+  database: DB_NAME
 });

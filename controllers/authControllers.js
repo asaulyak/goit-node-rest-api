@@ -1,6 +1,8 @@
 import { comparePassword, createUser, getUserByEmail, updateUserById } from '../services/usersServices.js';
 import HttpError from '../helpers/HttpError.js';
 import { sighToken } from '../services/authServices.js';
+import * as path from 'node:path';
+import * as fs from 'node:fs';
 
 export const registerUser = async (req, res, next) => {
   const { email, password } = req.body;
@@ -101,6 +103,32 @@ export const updateSubscription = async (req, res, next) => {
     });
 
     res.sendStatus(204);
+  } catch (e) {
+    next(HttpError(500));
+  }
+};
+
+export const updateAvatar = async (req, res, next) => {
+  const user = req.user;
+
+  if (!user) {
+    return next(HttpError(500));
+  }
+
+  try {
+    const avatar = req.file;
+
+    const avatarURL = path.join('/avatars', avatar.filename);
+
+    await fs.promises.rename(avatar.path, path.join('public', 'avatars', avatar.filename));
+
+    await updateUserById(user.id, {
+      avatarURL
+    });
+
+    res.json({
+      avatarURL
+    });
   } catch (e) {
     next(HttpError(500));
   }

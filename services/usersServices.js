@@ -1,5 +1,6 @@
 import bcrypt from 'bcrypt';
 import { User } from './models/user.model.js';
+import gravatar from 'gravatar'
 
 export const getUserByEmail = email => {
   return User.findOne({
@@ -10,6 +11,8 @@ export const getUserByEmail = email => {
 };
 
 export const createUser = async ({ password, email }) => {
+  const avatarURL = gravatar.url();
+
   const hashedPassword = await new Promise((resolve, reject) =>
     bcrypt.genSalt(10, (error, salt) => {
       if (error) {
@@ -28,7 +31,8 @@ export const createUser = async ({ password, email }) => {
 
   return User.create({
     email,
-    password: hashedPassword
+    password: hashedPassword,
+    avatarURL,
   });
 };
 

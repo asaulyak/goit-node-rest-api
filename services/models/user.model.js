@@ -28,6 +28,10 @@ User.init(
     token: {
       type: DataTypes.STRING,
       defaultValue: null
+    },
+    avatarURL: {
+      type: DataTypes.STRING,
+      allowNull: true
     }
   },
   { sequelize, modelName: 'users' }

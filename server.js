@@ -4,9 +4,7 @@ import contactsRouter from './routes/contactsRouter.js';
 import { config } from 'dotenv';
 import { sequelize } from './db/index.js';
 import { authRouter } from './routes/authRouter.js';
-import { User } from './services/models/user.model.js';
-import { Contact } from './services/models/contact.model.js';
-import {authMiddleware} from './middleware/authMiddleware.js'
+import { authMiddleware } from './middleware/authMiddleware.js';
 
 config();
 
@@ -16,6 +14,8 @@ const app = express();
 app.use(express.json());
 // cors
 app.use(cors());
+
+app.use('/avatars', express.static('public/avatars'));
 
 app.use('/api/contacts', authMiddleware, contactsRouter);
 app.use('/api/auth', authRouter);

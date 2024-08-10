@@ -7,9 +7,25 @@ import {
 } from '../services/contactsServices.js';
 import HttpError from '../helpers/HttpError.js';
 
-export const getAllContacts = async (_, res, next) => {
+export const getAllContacts = async (req, res, next) => {
+  let filters = null;
+
+  const {favorite, limit, page} = req.query || {};
+
+  if (favorite) {
+    if (favorite === 'true') {
+      filters = {
+        favorite: true
+      };
+    } else if (favorite === 'false') {
+      filters = {
+        favorite: false
+      };
+    }
+  }
+
   try {
-    const contacts = await listContacts();
+    const contacts = await listContacts(filters, limit, page);
     return res.status(200).json(contacts);
   } catch (e) {
     next(e);
@@ -53,8 +69,14 @@ export const deleteContact = async (req, res, next) => {
 };
 
 export const createContact = async (req, res, next) => {
+  const user = req.user;
+
+  if (!user) {
+    return next(HttpError(500));
+  }
+
   try {
-    const contact = await addContact(req.body);
+    const contact = await addContact({ ...req.body, owner: user.id });
 
     return res.status(201).json(contact);
   } catch (e) {

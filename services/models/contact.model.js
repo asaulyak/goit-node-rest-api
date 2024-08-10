@@ -36,6 +36,10 @@ Contact.init(
     favorite: {
       type: DataTypes.BOOLEAN,
       defaultValue: false
+    },
+    owner: {
+      type: DataTypes.UUID,
+      allowNull: false,
     }
   },
   { sequelize, indexes: [{ fields: ['name'] }], modelName: 'contacts' }

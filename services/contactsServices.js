@@ -1,7 +1,16 @@
 import { Contact } from './models/contact.model.js';
 
-export function listContacts() {
-  return Contact.findAll();
+export function listContacts(filters, limit = 20, page = 1) {
+  const options = {
+    limit,
+    offset: (page - 1) * limit
+  };
+
+  if (filters) {
+    options.where = filters;
+  }
+
+  return Contact.findAll(options);
 }
 
 export function getContactById(id) {

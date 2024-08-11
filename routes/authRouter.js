@@ -13,6 +13,8 @@ import { authMiddleware } from '../middleware/authMiddleware.js';
 import multer from 'multer';
 import { v4 } from 'uuid';
 
+const allowedAvatarTypes = ['image/png', 'image/jpeg'];
+
 const avatarStorage = multer.diskStorage({
   destination: 'temp',
   filename: (req, file, cb) => {
@@ -21,7 +23,17 @@ const avatarStorage = multer.diskStorage({
     cb(null, `${v4()}.${extension}`);
   }
 });
-const upload = multer({ storage: avatarStorage });
+const upload = multer({
+  storage: avatarStorage,
+  limits: { fileSize: 1024 * 1024 * 5 },
+  fileFilter: function (req, file, callback) {
+    if (!allowedAvatarTypes.includes(file.mimetype)) {
+      return callback(new Error(`Unsupported filetype ${file.mimetype}`), false);
+    }
+
+    callback(null, true);
+  }
+});
 
 export const authRouter = express.Router();
 

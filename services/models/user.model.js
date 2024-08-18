@@ -26,12 +26,20 @@ User.init(
       defaultValue: 'starter'
     },
     token: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       defaultValue: null
     },
     avatarURL: {
       type: DataTypes.STRING,
       allowNull: true
+    },
+    verify: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
+    },
+    verificationToken: {
+      type: DataTypes.STRING,
+      defaultValue: null
     }
   },
   { sequelize, modelName: 'users' }

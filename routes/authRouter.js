@@ -1,11 +1,13 @@
 import express from 'express';
 import validateBody from '../helpers/validateBody.js';
-import { userSchema, userSubscriptionSchema } from '../schemas/usersSchema.js';
+import { userSchema, userSubscriptionSchema, userVerificationSchema } from '../schemas/usersSchema.js';
 import {
+  getByVerificationToken,
   loginUser,
   logoutUser,
   me,
   registerUser,
+  resendVerificationToken,
   updateAvatar,
   updateSubscription
 } from '../controllers/authControllers.js';
@@ -43,3 +45,5 @@ authRouter.post('/logout', authMiddleware, logoutUser);
 authRouter.get('/current', authMiddleware, me);
 authRouter.patch('/subscription', authMiddleware, validateBody(userSubscriptionSchema), updateSubscription);
 authRouter.patch('/avatars', authMiddleware, upload.single('avatar'), updateAvatar);
+authRouter.get('/verify/:verificationToken', getByVerificationToken);
+authRouter.post('/verify', validateBody(userVerificationSchema), resendVerificationToken);

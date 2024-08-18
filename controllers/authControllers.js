@@ -1,8 +1,16 @@
-import { comparePassword, createUser, getUserByEmail, updateUserById } from '../services/usersServices.js';
+import {
+  comparePassword,
+  createUser,
+  getUserByEmail,
+  getUserByVerificationToken,
+  updateUserById
+} from '../services/usersServices.js';
 import HttpError from '../helpers/HttpError.js';
 import { sighToken } from '../services/authServices.js';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
+import { sendEmail } from '../email/email.service.js';
+import { v4 } from 'uuid';
 
 export const registerUser = async (req, res, next) => {
   const { email, password } = req.body;
@@ -14,12 +22,14 @@ export const registerUser = async (req, res, next) => {
       return next(HttpError(409, 'Email in use'));
     }
 
-    const { subscription } = await createUser({ email, password });
+    const user = await createUser({ email, password });
+
+    await sendVerificationEmail(user);
 
     res.status(201).json({
       user: {
         email,
-        subscription
+        subscription: user.subscription
       }
     });
   } catch (e) {
@@ -35,6 +45,10 @@ export const loginUser = async (req, res, next) => {
 
     if (!user) {
       return next(HttpError(401, 'Email or password is wrong'));
+    }
+
+    if (!user.verify) {
+      return next(HttpError(403, 'Email is not verified'));
     }
 
     const userData = {
@@ -133,3 +147,70 @@ export const updateAvatar = async (req, res, next) => {
     next(HttpError(500));
   }
 };
+
+export const getByVerificationToken = async (req, res, next) => {
+  const { verificationToken } = req.params;
+
+  const user = await getUserByVerificationToken(verificationToken);
+
+  if (!user) {
+    return next(HttpError(404, 'User not found'));
+  }
+
+  await updateUserById(user.id, {
+    verificationToken: null,
+    verify: true
+  });
+
+  res.json({
+    message: 'Verification successful'
+  });
+};
+
+export const resendVerificationToken = async (req, res, next) => {
+  const { email } = req.body;
+
+  try {
+    const user = await getUserByEmail(email);
+
+    if (!user) {
+      return next(HttpError(404, 'User not found'));
+    }
+
+    if (user.verify) {
+      return next(HttpError(400, 'Verification has already been passed'));
+    }
+
+    const updatedUser = {
+      verify: false,
+      verificationToken: v4()
+    };
+
+    await updateUserById(user.id, updatedUser);
+
+    await sendVerificationEmail({
+      email: user.email,
+      ...updatedUser
+    });
+
+    res.json({
+      message: 'Verification email sent'
+    });
+  } catch (e) {
+    next(HttpError(500));
+  }
+};
+
+function sendVerificationEmail(user) {
+  const { email, verificationToken } = user;
+  const verificationLink = `http://localhost:3000/api/auth/verify/${verificationToken}`;
+
+  return sendEmail({
+    to: email,
+    subject: 'Email verification',
+    html: `<h1>Email verification</h1>
+            <p>Please verify your email by following the <a href="${verificationLink}">verification link</a></p>
+            <p>or copy and paste it in your browser search bar ${verificationLink}</p>
+`
+  });
+}

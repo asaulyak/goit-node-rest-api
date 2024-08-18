@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import { User } from './models/user.model.js';
-import gravatar from 'gravatar'
+import gravatar from 'gravatar';
+import { v4 } from 'uuid';
 
 export const getUserByEmail = email => {
   return User.findOne({
@@ -12,6 +13,7 @@ export const getUserByEmail = email => {
 
 export const createUser = async ({ password, email }) => {
   const avatarURL = gravatar.url();
+  const verificationToken = v4();
 
   const hashedPassword = await new Promise((resolve, reject) =>
     bcrypt.genSalt(10, (error, salt) => {
@@ -33,6 +35,7 @@ export const createUser = async ({ password, email }) => {
     email,
     password: hashedPassword,
     avatarURL,
+    verificationToken
   });
 };
 
@@ -63,5 +66,14 @@ export const comparePassword = async function (email, password) {
 
       return resolve(null);
     });
+  });
+};
+
+export const getUserByVerificationToken = async verificationToken => {
+  return User.findOne({
+    where: {
+      verificationToken,
+      verify: false
+    }
   });
 };

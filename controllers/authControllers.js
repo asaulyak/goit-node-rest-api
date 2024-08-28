@@ -11,6 +11,7 @@ import * as path from 'node:path';
 import * as fs from 'node:fs';
 import { sendEmail } from '../email/email.service.js';
 import { v4 } from 'uuid';
+import {sendVerificationEmail} from '../helpers/sendVerificationEmail.js'
 
 export const registerUser = async (req, res, next) => {
   const { email, password } = req.body;
@@ -200,17 +201,3 @@ export const resendVerificationToken = async (req, res, next) => {
     next(HttpError(500));
   }
 };
-
-function sendVerificationEmail(user) {
-  const { email, verificationToken } = user;
-  const verificationLink = `http://localhost:3000/api/auth/verify/${verificationToken}`;
-
-  return sendEmail({
-    to: email,
-    subject: 'Email verification',
-    html: `<h1>Email verification</h1>
-            <p>Please verify your email by following the <a href="${verificationLink}">verification link</a></p>
-            <p>or copy and paste it in your browser search bar ${verificationLink}</p>
-`
-  });
-}
